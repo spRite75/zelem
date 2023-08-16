@@ -15,6 +15,4 @@ import { commandHandler, messageHandler } from "./src/handlers";
 
   app.command(...commandHandler);
   app.message(...messageHandler);
-
-  console.log("⚡️ Bolt app is running!!");
 })();
