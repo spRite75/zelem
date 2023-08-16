@@ -53,7 +53,7 @@ export const messageHandler: MessageHandler = [
   async ({ message, say }) => {
     if (
       // Validate channel
-      message.channel !== weegeeChannelId ||
+      message.channel !== channel ||
       // Regular messages only (no subtype)
       !!message.subtype ||
       // Need text to exist and have content
