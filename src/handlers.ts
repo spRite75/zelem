@@ -22,7 +22,10 @@ export const commandHandler: CommandHandler = [
       return;
     }
 
-    if (!command.text.length || (!command.text.endsWith("?") && !command.text.match(UNDERSCORE_BLOCK) )) {
+    if (
+      !command.text.length ||
+      (!command.text.endsWith("?") && !command.text.match(UNDERSCORE_BLOCK))
+    ) {
       await respond("Learn how to ask a real question ya goober.");
       return;
     }
@@ -30,6 +33,7 @@ export const commandHandler: CommandHandler = [
     state.currentQuestion = command.text;
     state.currentMessage = getWeightedLetter();
     state.requiredAnswerCount = getRequiredAnswerCount(state.currentQuestion);
+    state.lastMessageUser = undefined;
     await say(state.currentQuestion);
     await say(state.currentMessage);
   },
@@ -38,18 +42,22 @@ export const commandHandler: CommandHandler = [
 export const messageHandler: MessageHandler = [
   async ({ message, say }) => {
     if (
+      // Validate channel
       message.channel !== weegeeChannelId ||
-      message.subtype === "bot_message" ||
+      // Regular messages only (no subtype)
       !!message.subtype ||
-      !message.text
+      // Need text to exist and have content
+      !message.text ||
+      // Need currentMessage to exist and have content
+      !state.currentMessage||
+      // Don't take any inputs from the last person to contribute
+      message.user === state.lastMessageUser
     ) {
       return;
     }
 
     if (
-      state.currentMessage &&
-      message.text.length === 1 &&
-      message.user !== state.lastMessageUser
+      message.text.length === 1
     ) {
       if (message.text === "_") {
         if (state.requiredAnswerCount > 1) {
@@ -68,10 +76,6 @@ export const messageHandler: MessageHandler = [
     }
 
     if (message.text.toLowerCase() === "goodbye") {
-      if (!state.currentMessage || message.user === state.lastMessageUser) {
-        return;
-      }
-
       const output = getOutputText(state.currentQuestion, state.currentMessage);
       state.currentMessage = "";
       state.requiredAnswerCount = 0;
