@@ -27,7 +27,8 @@ export const letterScores = [
   { letter: "z", score: 10 },
 ] as const;
 
-export const weegeeChannelId = "CFALBFF41"
+export const devChannelId = "CGRAKRZM5";
+export const weegeeChannelId = "CFALBFF41";
 
 export const UNDERSCORE_BLOCK = /_{2,}/g;
 export const UNDERSCORE_BLOCK_NO_GLOBAL = /_{2,}/;

@@ -1,14 +1,17 @@
 import { App } from "@slack/bolt";
-import { UNDERSCORE_BLOCK, weegeeChannelId } from "./constants";
+import { UNDERSCORE_BLOCK, devChannelId, weegeeChannelId } from "./constants";
 import { getOutputText } from "./getOutputText";
 import { State } from "./state";
 import { getRequiredAnswerCount } from "./getRequiredAnswerCount";
 import { getWeightedLetter } from "./getWeightedLetter";
+import { isProduction } from "./env";
 
 const state = new State();
 
 type CommandHandler = Parameters<(typeof App)["prototype"]["command"]>;
 type MessageHandler = Parameters<(typeof App)["prototype"]["message"]>;
+
+const channel = isProduction ? weegeeChannelId : devChannelId;
 
 export const commandHandler: CommandHandler = [
   "/zelem",
@@ -34,8 +37,8 @@ export const commandHandler: CommandHandler = [
     state.currentMessage = getWeightedLetter();
     state.requiredAnswerCount = getRequiredAnswerCount(state.currentQuestion);
     state.lastMessageUser = undefined;
-    await say(state.currentQuestion);
-    await say(state.currentMessage);
+    await say({ channel, text: state.currentQuestion });
+    await say({ channel, text: state.currentMessage });
   },
 ];
 
@@ -49,23 +52,22 @@ export const messageHandler: MessageHandler = [
       // Need text to exist and have content
       !message.text ||
       // Need currentMessage to exist and have content
-      !state.currentMessage||
+      !state.currentMessage ||
       // Don't take any inputs from the last person to contribute
       message.user === state.lastMessageUser
     ) {
       return;
     }
 
-    if (
-      message.text.length === 1
-    ) {
+    if (message.text.length === 1) {
       if (message.text === "_") {
         if (state.requiredAnswerCount > 1) {
           state.requiredAnswerCount = state.requiredAnswerCount - 1;
         } else {
-          await say(
-            `There are no extra words required, '_' ignored. Nice one <@${message.user}>...`
-          );
+          await say({
+            channel,
+            text: `There are no extra words required, '_' ignored. Nice one <@${message.user}>...`,
+          });
           return;
         }
       }
