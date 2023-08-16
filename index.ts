@@ -2,6 +2,7 @@ import "dotenv/config";
 import { App } from "@slack/bolt";
 
 import { token, appToken } from "./src/env";
+import { commandHandler, messageHandler } from "./src/handlers";
 
 (async () => {
   const app = new App({
@@ -12,9 +13,8 @@ import { token, appToken } from "./src/env";
 
   await app.start(process.env.PORT || 3000);
 
-  app.message("teststring", async ({message, say}) => {
-    await say(JSON.stringify(message))
-  })
+  app.command(...commandHandler);
+  app.message(...messageHandler);
 
   console.log("⚡️ Bolt app is running!!");
 })();
