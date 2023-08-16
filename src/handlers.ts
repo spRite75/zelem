@@ -16,6 +16,13 @@ const channel = isProduction ? weegeeChannelId : devChannelId;
 export const commandHandler: CommandHandler = [
   "/zelem",
   async ({ command, ack, say, respond }) => {
+    if (
+      (isProduction && command.text.startsWith("dev")) ||
+      (!isProduction && !command.text.startsWith("dev"))
+    ) {
+      return;
+    }
+
     await ack();
 
     if (state.currentQuestion) {
