@@ -50,7 +50,7 @@ export const commandHandler: CommandHandler = [
 ];
 
 export const messageHandler: MessageHandler = [
-  async ({ message, say }) => {
+  async ({ message, say, client }) => {
     if (
       // Validate channel
       message.channel !== channel ||
@@ -92,6 +92,7 @@ export const messageHandler: MessageHandler = [
       state.lastMessageUser = undefined;
 
       await say(`Zelem says: ${output} (Ended by <@${message.user}>)`);
+      const username = (await client.users.info({user: message.user})).user?.name
       return;
     }
   },
