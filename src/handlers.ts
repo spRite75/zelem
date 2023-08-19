@@ -27,7 +27,7 @@ export const commandHandler: CommandHandler = [
 
     if (state.currentQuestion) {
       await respond(
-        "Be patient! There's already another request for divination in progress..."
+        "Be patient! There's already another request for divination in progress...",
       );
       return;
     }
@@ -61,7 +61,7 @@ export const messageHandler: MessageHandler = [
       // Need currentMessage to exist and have content
       !state.currentMessage ||
       // Don't take any inputs from the last person to contribute (production only)
-      isProduction && message.user === state.lastMessageUser
+      (isProduction && message.user === state.lastMessageUser)
     ) {
       return;
     }
@@ -92,7 +92,8 @@ export const messageHandler: MessageHandler = [
       state.lastMessageUser = undefined;
 
       await say(`Zelem says: ${output} (Ended by <@${message.user}>)`);
-      const username = (await client.users.info({user: message.user})).user?.name
+      const username = (await client.users.info({ user: message.user })).user
+        ?.name;
       return;
     }
   },

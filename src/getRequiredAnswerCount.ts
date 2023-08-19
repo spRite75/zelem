@@ -1,5 +1,5 @@
-import { UNDERSCORE_BLOCK } from './constants';
+import { UNDERSCORE_BLOCK } from "./constants";
 
 export function getRequiredAnswerCount(prompt: string) {
-    return prompt.match((new RegExp(UNDERSCORE_BLOCK)))?.length || 1;
+  return prompt.match(new RegExp(UNDERSCORE_BLOCK))?.length || 1;
 }
