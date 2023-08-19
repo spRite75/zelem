@@ -5,6 +5,7 @@ import { State } from "./state";
 import { getRequiredAnswerCount } from "./getRequiredAnswerCount";
 import { getWeightedLetter } from "./getWeightedLetter";
 import { isProduction } from "./env";
+import { lore } from "./lore";
 
 const state = new State();
 
@@ -14,15 +15,8 @@ type MessageHandler = Parameters<(typeof App)["prototype"]["message"]>;
 const channel = isProduction ? weegeeChannelId : devChannelId;
 
 export const commandHandler: CommandHandler = [
-  "/zelem",
+  isProduction ? "/zelem" : "/zelem-dev",
   async ({ command, ack, say, respond }) => {
-    if (
-      (isProduction && command.text.startsWith("dev")) ||
-      (!isProduction && !command.text.startsWith("dev"))
-    ) {
-      return;
-    }
-
     await ack();
 
     if (state.currentQuestion) {
@@ -79,6 +73,7 @@ export const messageHandler: MessageHandler = [
         }
       }
 
+      console.debug(`add ${message.text}`);
       state.currentMessage += message.text;
       state.lastMessageUser = message.user;
       return;
@@ -86,14 +81,20 @@ export const messageHandler: MessageHandler = [
 
     if (message.text.toLowerCase() === "goodbye") {
       const output = getOutputText(state.currentQuestion, state.currentMessage);
+      console.debug(`got goodbye for message: ${output}`);
       state.currentMessage = "";
       state.requiredAnswerCount = 0;
       state.currentQuestion = "";
       state.lastMessageUser = undefined;
 
       await say(`Zelem says: ${output} (Ended by <@${message.user}>)`);
-      const username = (await client.users.info({ user: message.user })).user
-        ?.name;
+      const endedByNickname = (await client.users.info({ user: message.user }))
+        .user?.name;
+      (await lore).write({
+        text: output,
+        endedBy: message.user,
+        endedByNickname,
+      });
       return;
     }
   },
