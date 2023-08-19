@@ -60,8 +60,8 @@ export const messageHandler: MessageHandler = [
       !message.text ||
       // Need currentMessage to exist and have content
       !state.currentMessage ||
-      // Don't take any inputs from the last person to contribute
-      message.user === state.lastMessageUser
+      // Don't take any inputs from the last person to contribute (production only)
+      isProduction && message.user === state.lastMessageUser
     ) {
       return;
     }
