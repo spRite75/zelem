@@ -21,6 +21,7 @@
     "local-env:stop": "docker compose down",
     "local-env:clean": "docker compose down -v",
     "dev": "ts-node index.ts",
+    "build": "tsc",
     "start": "node build/index.js",
     "test": "jest"
   }
