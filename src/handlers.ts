@@ -16,7 +16,7 @@ const channel = isProduction ? weegeeChannelId : devChannelId;
 
 export const commandHandlers: CommandHandler[] = [
   [
-    isProduction ? "/zelem" : "/zelem-dev",
+    isProduction ? "/zelem" : "/dev-zelem",
     async ({ command, ack, say, respond }) => {
       await ack();
 
@@ -44,7 +44,7 @@ export const commandHandlers: CommandHandler[] = [
     },
   ],
   [
-    isProduction ? "/lore" : "/lore-dev",
+    isProduction ? "/lore" : "/dev-lore",
     async ({ command, ack, say, client }) => {
       await ack();
 
