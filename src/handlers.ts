@@ -14,33 +14,58 @@ type MessageHandler = Parameters<(typeof App)["prototype"]["message"]>;
 
 const channel = isProduction ? weegeeChannelId : devChannelId;
 
-export const commandHandler: CommandHandler = [
-  isProduction ? "/zelem" : "/zelem-dev",
-  async ({ command, ack, say, respond }) => {
-    await ack();
+export const commandHandlers: CommandHandler[] = [
+  [
+    isProduction ? "/zelem" : "/zelem-dev",
+    async ({ command, ack, say, respond }) => {
+      await ack();
 
-    if (state.currentQuestion) {
-      await respond(
-        "Be patient! There's already another request for divination in progress...",
-      );
-      return;
-    }
+      if (state.currentQuestion) {
+        await respond(
+          "Be patient! There's already another request for divination in progress...",
+        );
+        return;
+      }
 
-    if (
-      !command.text.length ||
-      (!command.text.endsWith("?") && !command.text.match(UNDERSCORE_BLOCK))
-    ) {
-      await respond("Learn how to ask a real question ya goober.");
-      return;
-    }
+      if (
+        !command.text.length ||
+        (!command.text.endsWith("?") && !command.text.match(UNDERSCORE_BLOCK))
+      ) {
+        await respond("Learn how to ask a real question ya goober.");
+        return;
+      }
 
-    state.currentQuestion = command.text;
-    state.currentMessage = getWeightedLetter();
-    state.requiredAnswerCount = getRequiredAnswerCount(state.currentQuestion);
-    state.lastMessageUser = undefined;
-    await say({ channel, text: state.currentQuestion });
-    await say({ channel, text: state.currentMessage });
-  },
+      state.currentQuestion = command.text;
+      state.currentMessage = getWeightedLetter();
+      state.requiredAnswerCount = getRequiredAnswerCount(state.currentQuestion);
+      state.lastMessageUser = undefined;
+      await say({ channel, text: state.currentQuestion });
+      await say({ channel, text: state.currentMessage });
+    },
+  ],
+  [
+    isProduction ? "/lore" : "/lore-dev",
+    async ({ command, ack, say, client }) => {
+      await ack();
+
+      const { text, endedBy, date } = await (await lore).retrieve();
+
+      const respond = () =>
+        say({
+          channel: command.channel_id,
+          text: `Zelem said: ${text} (Ended by <@${endedBy}> on ${date?.toLocaleDateString(
+            "en-au",
+          )})`,
+        });
+
+      try {
+        await respond();
+      } catch {
+        await client.conversations.join({ channel: command.channel_id });
+        await respond();
+      }
+    },
+  ],
 ];
 
 export const messageHandler: MessageHandler = [

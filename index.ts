@@ -2,7 +2,7 @@ import { App } from "@slack/bolt";
 import Koa from "koa";
 
 import { httpPort, token, appToken } from "./src/env";
-import { commandHandler, messageHandler } from "./src/handlers";
+import { commandHandlers, messageHandler } from "./src/handlers";
 
 (async () => {
   const server = new Koa();
@@ -19,6 +19,6 @@ import { commandHandler, messageHandler } from "./src/handlers";
   });
 
   await app.start();
-  app.command(...commandHandler);
+  commandHandlers.forEach((handler) => app.command(...handler));
   app.message(...messageHandler);
 })();
