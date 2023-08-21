@@ -2,8 +2,6 @@ import { App } from "@slack/bolt";
 import { UNDERSCORE_BLOCK, devChannelId, weegeeChannelId } from "./constants";
 import { getOutputText } from "./getOutputText";
 import { State } from "./state";
-import { getRequiredAnswerCount } from "./getRequiredAnswerCount";
-import { getWeightedLetter } from "./getWeightedLetter";
 import { isProduction } from "./env";
 import { lore } from "./lore";
 
@@ -35,12 +33,9 @@ export const commandHandlers: CommandHandler[] = [
         return;
       }
 
-      state.currentQuestion = command.text;
-      state.currentMessage = getWeightedLetter();
-      state.requiredAnswerCount = getRequiredAnswerCount(state.currentQuestion);
-      state.lastMessageUser = undefined;
-      await say({ channel, text: state.currentQuestion });
-      await say({ channel, text: state.currentMessage });
+      const { question, firstLetter } = state.startQuestion(command.text);
+      await say({ channel, text: question });
+      await say({ channel, text: firstLetter });
     },
   ],
   [
@@ -88,7 +83,8 @@ export const messageHandler: MessageHandler = [
     if (message.text.length === 1) {
       if (message.text === "_") {
         if (state.requiredAnswerCount > 1) {
-          state.requiredAnswerCount = state.requiredAnswerCount - 1;
+          state.startNextWord(message.user);
+          return;
         } else {
           await say({
             channel,
@@ -98,19 +94,15 @@ export const messageHandler: MessageHandler = [
         }
       }
 
-      console.debug(`add ${message.text}`);
-      state.currentMessage += message.text;
-      state.lastMessageUser = message.user;
+      state.addLetter({ letter: message.text, user: message.user });
       return;
     }
 
     if (message.text.toLowerCase() === "goodbye") {
+      if (!state.currentQuestion || !state.currentMessage) return;
       const output = getOutputText(state.currentQuestion, state.currentMessage);
       console.debug(`got goodbye for message: ${output}`);
-      state.currentMessage = "";
-      state.requiredAnswerCount = 0;
-      state.currentQuestion = "";
-      state.lastMessageUser = undefined;
+      state.reset();
 
       await say(`Zelem says: ${output} (Ended by <@${message.user}>)`);
       const endedByNickname = (await client.users.info({ user: message.user }))
